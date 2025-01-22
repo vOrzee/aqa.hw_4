@@ -8,13 +8,13 @@ import org.openqa.selenium.Keys;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.stream.Collectors;
 
 import static com.codeborne.selenide.Condition.visible;
-import static com.codeborne.selenide.Selectors.withText;
 import static com.codeborne.selenide.Selenide.*;
 
 public class RegistrationTest  {
+
+    final int defermentDays = 3;
 
     public String generateDate(int days, String pattern) {
         return LocalDate.now().plusDays(days).format(DateTimeFormatter.ofPattern(pattern));
@@ -26,8 +26,7 @@ public class RegistrationTest  {
         $("[data-test-id='city'] input").setValue("Оренбург");
         SelenideElement dateElement = $("[data-test-id='date'] input");
         dateElement.sendKeys(Keys.chord(Keys.SHIFT, Keys.HOME), Keys.DELETE);
-        int defermentDays = 3;
-        String dateEvent = generateDate(defermentDays, "d.MM.yyyy");
+        String dateEvent = generateDate(defermentDays, "dd.MM.yyyy");
         dateElement.setValue(dateEvent);
         $("[data-test-id='name'] input").setValue("Смирнов Роман");
         $("[data-test-id='phone'] input").setValue("+79200000000");
@@ -44,28 +43,26 @@ public class RegistrationTest  {
         $$(".menu-item").find(Condition.text("Оренбург")).click();
         $("[data-test-id='date'] input").click();
         int currentDay = Integer.parseInt($(".calendar__day_state_today").getText());
-        int defermentDays = 10;
-        String dateEvent = generateDate(defermentDays, "dd.MM.yyyy");
-        String numberOfDayEvent = generateDate(defermentDays, "d");
         int lastDayInCurrentMonth = Integer.parseInt(
                 $$("[role='gridcell']").filterBy(Condition.not(Condition.empty)).last().getText()
         );
         int maxIterations = defermentDays/28 + 1;
-        while (currentDay + defermentDays > lastDayInCurrentMonth && maxIterations > 0){
+        int remainingDays = defermentDays;
+        while (currentDay + remainingDays > lastDayInCurrentMonth && maxIterations > 0){
             lastDayInCurrentMonth = Integer.parseInt(
                     $$("[role='gridcell']").filterBy(Condition.not(Condition.empty)).last().getText()
             );
             $(".calendar__title [data-step='1']").click();
-            defermentDays -= lastDayInCurrentMonth - currentDay;
+            remainingDays -= lastDayInCurrentMonth - currentDay;
             currentDay = 0;
             maxIterations--;
         }
-        $$("[role='gridcell']").find(Condition.text(numberOfDayEvent)).click();
+        $$("[role='gridcell']").find(Condition.text(generateDate(defermentDays, "d"))).click();
         $("[data-test-id='name'] input").setValue("Смирнов Роман");
         $("[data-test-id='phone'] input").setValue("+79200000000");
         $("[data-test-id='agreement']").click();
         $$("button").find(Condition.text("Забронировать")).click();
         $("[data-test-id='notification']").shouldBe(visible, Duration.ofSeconds(15));
-        $("[data-test-id='notification'] .notification__content").shouldBe(Condition.matchText(dateEvent), Duration.ofSeconds(15));
+        $("[data-test-id='notification'] .notification__content").shouldBe(Condition.matchText(generateDate(defermentDays, "dd.MM.yyyy")), Duration.ofSeconds(15));
     }
 }
