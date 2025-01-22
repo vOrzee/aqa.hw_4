@@ -20,7 +20,7 @@ public class RegistrationTest  {
     }
 
     @Test
-    void shouldSubmitDeliveryCardRequestSuccessfully() throws InterruptedException {
+    void shouldSubmitDeliveryCardRequestSuccessfully() {
         open("http://localhost:9999");
         $("[data-test-id='city'] input").setValue("Оренбург");
         SelenideElement dateElement = $("[data-test-id='date'] input");
