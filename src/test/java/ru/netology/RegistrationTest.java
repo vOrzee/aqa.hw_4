@@ -26,12 +26,15 @@ public class RegistrationTest  {
         $("[data-test-id='city'] input").setValue("Оренбург");
         SelenideElement dateElement = $("[data-test-id='date'] input");
         dateElement.sendKeys(Keys.chord(Keys.SHIFT, Keys.HOME), Keys.DELETE);
-        dateElement.setValue(generateDate(3, "dd.MM.yyyy"));
+        int defermentDays = 3;
+        String dateEvent = generateDate(defermentDays, "d.MM.yyyy");
+        dateElement.setValue(dateEvent);
         $("[data-test-id='name'] input").setValue("Смирнов Роман");
         $("[data-test-id='phone'] input").setValue("+79200000000");
         $("[data-test-id='agreement']").click();
         $$("button").find(Condition.text("Забронировать")).click();
-        $(withText("Встреча успешно забронирована")).shouldBe(visible, Duration.ofSeconds(15));
+        $("[data-test-id='notification']").shouldBe(visible, Duration.ofSeconds(15));
+        $("[data-test-id='notification'] .notification__content").shouldBe(Condition.matchText(dateEvent), Duration.ofSeconds(15));
     }
 
     @Test
@@ -41,25 +44,28 @@ public class RegistrationTest  {
         $$(".menu-item").find(Condition.text("Оренбург")).click();
         $("[data-test-id='date'] input").click();
         int currentDay = Integer.parseInt($(".calendar__day_state_today").getText());
-        int defermentDays = 3;
-        String dateEvent = generateDate(defermentDays, "d.MM.yyyy");
-        // Можно обойтись и без поиска последнего дня, сравнив день в dateEvent с currentDay, если меньше, то листаем, но отсрочка в теории может быть и больше месяца
+        int defermentDays = 10;
+        String dateEvent = generateDate(defermentDays, "dd.MM.yyyy");
+        String numberOfDayEvent = generateDate(defermentDays, "d");
         int lastDayInCurrentMonth = Integer.parseInt(
                 $$("[role='gridcell']").filterBy(Condition.not(Condition.empty)).last().getText()
         );
-        while (currentDay + defermentDays > lastDayInCurrentMonth){
+        int maxIterations = defermentDays/28 + 1;
+        while (currentDay + defermentDays > lastDayInCurrentMonth && maxIterations > 0){
             lastDayInCurrentMonth = Integer.parseInt(
                     $$("[role='gridcell']").filterBy(Condition.not(Condition.empty)).last().getText()
             );
             $(".calendar__title [data-step='1']").click();
             defermentDays -= lastDayInCurrentMonth - currentDay;
             currentDay = 0;
+            maxIterations--;
         }
-        $$("[role='gridcell']").find(Condition.text(dateEvent.substring(0, dateEvent.indexOf('.')))).click();
+        $$("[role='gridcell']").find(Condition.text(numberOfDayEvent)).click();
         $("[data-test-id='name'] input").setValue("Смирнов Роман");
         $("[data-test-id='phone'] input").setValue("+79200000000");
         $("[data-test-id='agreement']").click();
         $$("button").find(Condition.text("Забронировать")).click();
-        $(withText("Встреча успешно забронирована")).shouldBe(visible, Duration.ofSeconds(15));
+        $("[data-test-id='notification']").shouldBe(visible, Duration.ofSeconds(15));
+        $("[data-test-id='notification'] .notification__content").shouldBe(Condition.matchText(dateEvent), Duration.ofSeconds(15));
     }
 }
