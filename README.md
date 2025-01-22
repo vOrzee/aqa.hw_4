@@ -1,0 +1,2 @@
+### Статус сборки
+[![Java CI with Gradle](https://github.com/vOrzee/aqa.hw_4/actions/workflows/action.yml/badge.svg?branch=main&event=push)](https://github.com/vOrzee/aqa.hw_4/actions/workflows/action.yml)
